@@ -119,13 +119,10 @@ Stack_list<T>::Stack_list() : nodeTop(NULL), sizeStack(0)
 
 template <class T>
 Stack_list<T>::Stack_list(Stack_list<T> &stack)
-{/* finish at the end */
-        Node <T> *current = stack;
-        while (current->predecessor != NULL)
-        {
-            this->pushEnd(current->data);
-            current = current->predecessor;
-        }
+{
+    for (int var = 0; var < stack.size(); ++var){
+        this->pushEnd(stack[var]);
+    }
 }
 
 
@@ -188,11 +185,8 @@ Stack_list<T>& Stack_list<T>::operator= (Stack_list<T> &copyStack)
 {
     if (this != &copyStack){
         this->clear();
-        Node <T> *current = copyStack;
-        while (current->predecessor != NULL)
-        {
-            this->pushEnd(current->data);
-            current = current->predecessor;
+        for (int var = 0; var < copyStack.size(); ++var){
+            this->pushEnd(copyStack[var]);
         }
     }
     return *this;
