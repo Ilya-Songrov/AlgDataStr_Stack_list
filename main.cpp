@@ -1,4 +1,5 @@
 #include <iostream>
+#include <stdexcept>
 
 using namespace std;
 
@@ -7,11 +8,11 @@ template <class T>
 class Stack_list
 {
     private:    
-        template <class T>
+        template <class Type>
         struct Node
         {
-            T data;
-            Node <T> *predecessor;
+            Type data;
+            Node <Type> *predecessor;
         };
 
         Node <T> *nodeTop;
@@ -24,12 +25,14 @@ class Stack_list
         inline void pushEnd(T data);
         inline void popEnd();
         inline void clear();
-        inline T top() { return (nodeTop != NULL ? nodeTop->data : NULL); }
+        inline T top() { return (nodeTop != NULL ?
+                        nodeTop->data : throw logic_error{"Top is not exist."}); }
         inline bool isEmpty() { return bool(sizeStack == 0); }
         inline int size() const { return sizeStack; }
         inline void print() const;
 
         Stack_list<T>& operator= (Stack_list<T> &copyMyStack);
+        T &operator[] (int index); // speed - O(n)
 
 };
 
@@ -40,6 +43,7 @@ bool equal(char char1, char char2){
     if(char1 == '[' && char2 == ']') return true;
     return false;
 }
+
 
 string checkBrackets(string input)
 {
@@ -82,8 +86,8 @@ string checkBrackets(string input)
     return result;
 }
 
-// Stack 34
-int main(int argc, char *argv[])
+
+int main()
 {
 
 //    string str = "";
@@ -99,9 +103,8 @@ int main(int argc, char *argv[])
     textBrackets.pushEnd("foo(bar[i);");
     for (int var = 0; var < textBrackets.size(); ++var)
     {
-        cout << textBrackets.top() << endl;
+        cout << textBrackets[var] << endl;
         cout << checkBrackets(textBrackets[var]) << endl;
-        textBrackets.popEnd();
     }
 
 
@@ -193,5 +196,28 @@ Stack_list<T>& Stack_list<T>::operator= (Stack_list<T> &copyStack)
         }
     }
     return *this;
+}
+
+template <class T>
+T &Stack_list<T>::operator[](int index)
+{
+    T *result = NULL;
+    try{
+        if(index >= sizeStack || index < 0){
+            throw 0;
+        }
+    }
+    catch(int num){
+        cout << "Error #" << to_string(num) << ". Array index out of bounds " << endl;
+    }
+
+    Node <T> *current = nodeTop;
+    result = &(current->data);
+    for (int var = 0; var < sizeStack - index - 1; ++var)
+    {
+        current = current->predecessor;
+        result = &(current->data);
+    }
+    return *result;
 }
 
