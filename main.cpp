@@ -7,16 +7,31 @@ using namespace std;
 template <class T>
 class Stack_list
 {
-    private:    
+    private:
         template <class Type>
         struct Node
         {
             Type data;
-            Node <Type> *predecessor;
+            Node <Type> *nodeSuccessor;
+            Node(Node <Type> *nodeSuccessor_ = NULL) : nodeSuccessor(nodeSuccessor_){}
         };
 
+        Node <T> *nodeFirst;
         Node <T> *nodeTop;
         int sizeStack;
+    public:
+        class IteratorMy
+        {
+            public:
+            Node <T> *nodeIt;
+            IteratorMy(Node <T> *node_ = NULL) : nodeIt(node_) {}
+
+            bool operator==(const IteratorMy &otherIt) { return (this == &otherIt ? true :
+                                                (nodeIt == otherIt.nodeIt)); }
+            bool operator!=(const IteratorMy &otherIt) { return !operator ==(otherIt); }
+            T& operator* () const { return this->nodeIt->data; }
+            void operator++ () { if(nodeIt != NULL){ nodeIt = nodeIt->nodeSuccessor; } }
+        };
     public:
         Stack_list();
         Stack_list(Stack_list<T> &stack);
@@ -24,17 +39,20 @@ class Stack_list
 
         inline void pushEnd(T data);
         inline void popEnd();
-        inline void clear();
+        inline IteratorMy begin() { return IteratorMy (nodeFirst); }
+        inline IteratorMy end() { return IteratorMy (NULL); }
         inline T top() { return (nodeTop != NULL ?
                         nodeTop->data : throw logic_error{"Top is not exist."}); }
         inline bool isEmpty() { return bool(sizeStack == 0); }
         inline int size() const { return sizeStack; }
+        inline void clear();
         inline void print() const;
 
         Stack_list<T>& operator= (Stack_list<T> &copyMyStack);
         T &operator[] (int index); // speed - O(n)
 
 };
+
 
 
 bool equal(char char1, char char2){
@@ -86,7 +104,6 @@ string checkBrackets(string input)
     return result;
 }
 
-
 int main()
 {
 
@@ -101,6 +118,8 @@ int main()
     textBrackets.pushEnd("{{[()]]");
     textBrackets.pushEnd("foo(bar);");
     textBrackets.pushEnd("foo(bar[i);");
+
+
     for (int var = 0; var < textBrackets.size(); ++var)
     {
         cout << textBrackets[var] << endl;
@@ -111,52 +130,60 @@ int main()
     return 0;
 }
 
+
+
 template <class T>
-Stack_list<T>::Stack_list() : nodeTop(NULL), sizeStack(0)
+Stack_list<T>::Stack_list() : nodeFirst(NULL), nodeTop(NULL), sizeStack(0)
 {
 
 }
 
 template <class T>
-Stack_list<T>::Stack_list(Stack_list<T> &stack)
+Stack_list<T>::Stack_list(Stack_list<T> &stack) : Stack_list()
 {
-    for (int var = 0; var < stack.size(); ++var){
-        this->pushEnd(stack[var]);
-    }
+    *this = stack;
 }
 
 
 template <class T>
 void Stack_list<T>::pushEnd(T data)
 {
-    Node <T> *newNode = new Node <T>;
+    Node <T> *newNode = new Node <T>();
     newNode->data = data;
     sizeStack++;
     if(nodeTop == NULL){ // if the node is first
-        newNode->predecessor = NULL;
         nodeTop = newNode;
+        nodeFirst = newNode;
         return;
     }
-    newNode->predecessor = nodeTop;
+    nodeTop->nodeSuccessor = newNode;
     nodeTop = newNode;
 }
 
 template <class T>
 void Stack_list<T>::popEnd()
 {
-    if(nodeTop != NULL){
+    if(nodeTop != NULL && sizeStack > 0){
         Node <T> *deleteNode;
         deleteNode = nodeTop;
-        sizeStack--;
-        if(deleteNode->predecessor == NULL){ // if the predecessor is out
+        if(sizeStack == 1){ // if the size is one
             nodeTop = NULL;
+            nodeFirst = NULL;
             delete deleteNode;
+            sizeStack = 0;
             return;
         }
-        nodeTop = deleteNode->predecessor;
+        Node <T> *nodePredecessor = nodeFirst;
+        for (int var = 2; var < sizeStack; ++var){
+            nodePredecessor = nodePredecessor->nodeSuccessor;
+        }
+        nodePredecessor->nodeSuccessor = NULL;
+        nodeTop = nodePredecessor;
         delete deleteNode;
+        sizeStack--;
     }
 }
+
 
 template <class T>
 void Stack_list<T>::clear()
@@ -170,11 +197,12 @@ void Stack_list<T>::clear()
 template <class T>
 void Stack_list<T>::print() const
 {
-    Node <T> *current = nodeTop;
-    while (current->predecessor != NULL)
-    {
-        cout << current->data << endl;
-        current = current->predecessor;
+    if(nodeTop == NULL) return;
+
+    Node <T> *currentNode = nodeFirst;
+    while (currentNode != NULL) {
+        cout << currentNode->data << endl;
+        currentNode = currentNode->nodeSuccessor;
     }
     cout << "--------------" << endl;
 }
@@ -185,17 +213,17 @@ Stack_list<T>& Stack_list<T>::operator= (Stack_list<T> &copyStack)
 {
     if (this != &copyStack){
         this->clear();
-        for (int var = 0; var < copyStack.size(); ++var){
-            this->pushEnd(copyStack[var]);
+        for (IteratorMy it = copyStack.begin(); it != copyStack.end(); ++it){
+            this->pushEnd(*it);
         }
     }
+    cout << "I was here stack 2 " << endl;
     return *this;
 }
 
 template <class T>
 T &Stack_list<T>::operator[](int index)
 {
-    T *result = NULL;
     try{
         if(index >= sizeStack || index < 0){
             throw 0;
@@ -205,13 +233,11 @@ T &Stack_list<T>::operator[](int index)
         cout << "Error #" << to_string(num) << ". Array index out of bounds " << endl;
     }
 
-    Node <T> *current = nodeTop;
-    result = &(current->data);
-    for (int var = 0; var < sizeStack - index - 1; ++var)
-    {
-        current = current->predecessor;
-        result = &(current->data);
+    IteratorMy it = begin();
+    for (int var = 0; var < index; ++var) {
+        ++it;
     }
-    return *result;
+//    result = &(*it);
+    return *it;
 }
 
