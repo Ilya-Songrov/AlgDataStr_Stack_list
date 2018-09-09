@@ -12,8 +12,12 @@ class Stack_list
         struct Node
         {
             Type data;
+            Node <Type> *nodePredecessor;
             Node <Type> *nodeSuccessor;
-            Node(Node <Type> *nodeSuccessor_ = NULL) : nodeSuccessor(nodeSuccessor_){}
+            Node(){
+                nodePredecessor = NULL;
+                nodeSuccessor = NULL;
+            }
         };
 
         Node <T> *nodeFirst;
@@ -126,6 +130,20 @@ int main()
         cout << checkBrackets(textBrackets[var]) << endl;
     }
 
+    cout << "-*-*-*-*-*-*-*-*-" << endl;
+    Stack_list <int> stack1;
+    Stack_list <int> stack2;
+    Stack_list <int> stack3;
+    stack2.pushEnd(-12);
+    stack2.pushEnd(-13);
+    stack2.pushEnd(-14);
+    stack2.pushEnd(-15);
+    stack2.pushEnd(-16);
+    stack3 = stack2;
+    Stack_list <int> stack4(stack3);
+    stack1 = stack4;
+    stack1.print();
+
 
     return 0;
 }
@@ -156,6 +174,8 @@ void Stack_list<T>::pushEnd(T data)
         nodeFirst = newNode;
         return;
     }
+    newNode->nodePredecessor = nodeTop;
+    newNode->nodeSuccessor = NULL;
     nodeTop->nodeSuccessor = newNode;
     nodeTop = newNode;
 }
@@ -167,18 +187,15 @@ void Stack_list<T>::popEnd()
         Node <T> *deleteNode;
         deleteNode = nodeTop;
         if(sizeStack == 1){ // if the size is one
-            nodeTop = NULL;
             nodeFirst = NULL;
+            nodeTop = NULL;
             delete deleteNode;
             sizeStack = 0;
             return;
         }
-        Node <T> *nodePredecessor = nodeFirst;
-        for (int var = 2; var < sizeStack; ++var){
-            nodePredecessor = nodePredecessor->nodeSuccessor;
-        }
-        nodePredecessor->nodeSuccessor = NULL;
-        nodeTop = nodePredecessor;
+        Node <T> *nodePrecursor = nodeTop->nodePredecessor;
+        nodePrecursor->nodeSuccessor = NULL;
+        nodeTop = nodePrecursor;
         delete deleteNode;
         sizeStack--;
     }
@@ -191,6 +208,8 @@ void Stack_list<T>::clear()
     while(nodeTop != NULL){
         popEnd();
     }
+    nodeFirst = NULL;
+    nodeTop = NULL;
     sizeStack = 0;
 }
 
@@ -217,7 +236,6 @@ Stack_list<T>& Stack_list<T>::operator= (Stack_list<T> &copyStack)
             this->pushEnd(*it);
         }
     }
-    cout << "I was here stack 2 " << endl;
     return *this;
 }
 
@@ -237,7 +255,6 @@ T &Stack_list<T>::operator[](int index)
     for (int var = 0; var < index; ++var) {
         ++it;
     }
-//    result = &(*it);
     return *it;
 }
 
