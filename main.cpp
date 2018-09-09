@@ -113,7 +113,6 @@ int main()
 
 //    string str = "";
 //    cin >> str;
-//    cout << str << endl;
 //    cout << checkBrackets(str) << endl;
 
     Stack_list <string> textBrackets;
